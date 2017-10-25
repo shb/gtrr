@@ -1,9 +1,9 @@
 #!/bin/sh
 
 BEFORE_ALL=before.all
-AFTER_ALL=after.all
-
 BEFORE_EACH=before.each
+TESTS='*.test'
+AFTER_ALL=after.all
 AFTER_EACH=after.each
 
 _bailout () {
@@ -23,17 +23,17 @@ run () {
 				if source "./${BEFORE_ALL}"; then true; else _bailout "Batch setup failed"; fi
 			fi
 
-			for TEST in *.test; do
+			for TEST in $TESTS; do
 				if [ -r "${TEST}" ]; then
 					if [ -r "${BEFORE_EACH}" ]; then
 #						echo "# source ${PWD}/${BEFORE_EACH}"
 						if source "./${BEFORE_EACH}"; then true; else _bailout "Test setup failed"; fi
 					fi
-					let _ntest++
 					OK=${_ntest}
 #					echo "# source ${PWD}/${TEST}"
 					source "./${TEST}"
 					OK=$?
+					let _ntest++
 					if [ -r "${AFTER_EACH}" ]; then
 #						echo "# source ${PWD}/${AFTER_EACH}"
 						if source "./${AFTER_EACH}"; then true; else _bailout "Test teardown failed"; fi
