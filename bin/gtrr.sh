@@ -106,7 +106,7 @@ run () {
 # Output:
 # The test output format is compatible with TAP specification, revision 12.
 #
-ROOT=${PWD}
+export ROOT=${PWD}
 
 _ntest=0
 run ${*:-.}
