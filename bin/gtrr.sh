@@ -12,6 +12,13 @@ _bailout () {
 }
 
 run () {
+	# Cache env vars for restoring them afterwards
+	_BEFORE_ALL=$BEFORE_ALL
+	_BEFORE_EACH=$BEFORE_EACH
+	_TESTS=$TESTS
+	_AFTER_ALL=$AFTER_ALL
+	_AFTER_EACH=$AFTER_EACH
+
 	for batch in $*; do
 		if [ -d ${batch} ]; then
 			_pdir=${PWD}
@@ -55,6 +62,12 @@ run () {
 			cd "${_pdir}"
 		fi
 	done
+
+	BEFORE_ALL=$_BEFORE_ALL
+	BEFORE_EACH=$_BEFORE_EACH
+	TESTS=$_TESTS
+	AFTER_ALL=$_AFTER_ALL
+	AFTER_EACH=$_AFTER_EACH
 }
 
 #
