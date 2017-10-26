@@ -6,9 +6,17 @@ TESTS='*.test'
 AFTER_ALL=after.all
 AFTER_EACH=after.each
 
+VERBOSE=0
+
 _bailout () {
 	echo "Bail out! $1"
 	exit 1
+}
+
+_debug () {
+	if [ "${VERBOSE}" != "0" ]; then
+		echo "# $*"
+	fi
 }
 
 run () {
@@ -26,7 +34,7 @@ run () {
 			cd ${batch}
 
 			if [ -r "${BEFORE_ALL}" ]; then
-#				echo "# source ${PWD}/${BEFORE_ALL}"
+				_debug "source ${PWD}/${BEFORE_ALL}"
 				if source "./${BEFORE_ALL}"; then true; else _bailout "Batch setup failed"; fi
 			fi
 
@@ -42,7 +50,7 @@ run () {
 					OK=$?
 					let _ntest++
 					if [ -r "${AFTER_EACH}" ]; then
-#						echo "# source ${PWD}/${AFTER_EACH}"
+						_debug "source ${PWD}/${AFTER_EACH}"
 						if source "./${AFTER_EACH}"; then true; else _bailout "Test teardown failed"; fi
 					fi
 					if [ "${OK}" == "0" ]; then
@@ -54,7 +62,7 @@ run () {
 			done
 
 			if [ -r "${AFTER_ALL}" ]; then
-#				echo "# source ${PWD}/${AFTER_ALL}"
+				_debug "source ${PWD}/${AFTER_ALL}"
 				if source "./${AFTER_ALL}"; then true; else _bailout "Batch teardown failed"; fi
 			fi
 
