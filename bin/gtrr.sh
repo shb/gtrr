@@ -31,20 +31,23 @@ run () {
 
 	for batch in $*; do
 		if [ -d ${batch} ]; then
-			_pdir=${PWD}
-#			echo "# cd ${batch}"
+			_pdir_=${PWD}
+			_debug "cd ${batch}"
 			cd ${batch}
+			_cwd_=${PWD}
 
 			if [ -r "${BEFORE_ALL}" ]; then
 				_debug "source ${PWD}/${BEFORE_ALL}"
 				if source "./${BEFORE_ALL}"; then true; else _bailout "Batch setup failed"; fi
 			fi
 
-			for TEST in $TESTS; do
+			for TEST in ${_cwd_}/$TESTS; do
 				if [ -r "${TEST}" ]; then
-					if [ -r "${BEFORE_EACH}" ]; then
-#						echo "# source ${PWD}/${BEFORE_EACH}"
-						if source "./${BEFORE_EACH}"; then true; else _bailout "Test setup failed"; fi
+					TEST_NAME=$(basename ${TEST})
+					#TEST=${_cwd_}/${TEST}
+					if [ -r "${_cwd_}/${BEFORE_EACH}" ]; then
+						_debug "source ${_cwd_}/${BEFORE_EACH}"
+						if source "${_cwd_}/${BEFORE_EACH}"; then true; else _bailout "Test setup failed"; fi
 					fi
 					OK=${_ntest}
 					_debug "${RUNNER} ${TEST}"
@@ -56,9 +59,9 @@ run () {
 						if source "./${AFTER_EACH}"; then true; else _bailout "Test teardown failed"; fi
 					fi
 					if [ "${OK}" == "0" ]; then
-						echo "ok ${_ntest} - ${TEST}"
+						echo "ok ${_ntest} - ${TEST_NAME}"
 					else
-						echo "not ok ${_ntest} - ${TEST}"
+						echo "not ok ${_ntest} - ${TEST_NAME}"
 					fi
 				fi
 			done
