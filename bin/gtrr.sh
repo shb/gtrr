@@ -3,6 +3,7 @@
 BEFORE_ALL=before.all
 BEFORE_EACH=before.each
 TESTS='*.test'
+RUNNER=source
 AFTER_ALL=after.all
 AFTER_EACH=after.each
 
@@ -24,6 +25,7 @@ run () {
 	_BEFORE_ALL=$BEFORE_ALL
 	_BEFORE_EACH=$BEFORE_EACH
 	_TESTS=$TESTS
+	_RUNNER=$RUNNER
 	_AFTER_ALL=$AFTER_ALL
 	_AFTER_EACH=$AFTER_EACH
 
@@ -45,8 +47,8 @@ run () {
 						if source "./${BEFORE_EACH}"; then true; else _bailout "Test setup failed"; fi
 					fi
 					OK=${_ntest}
-#					echo "# source ${PWD}/${TEST}"
-					source "./${TEST}"
+					_debug "${RUNNER} ${TEST}"
+					${RUNNER} ${TEST}
 					OK=$?
 					let _ntest++
 					if [ -r "${AFTER_EACH}" ]; then
@@ -66,14 +68,14 @@ run () {
 				if source "./${AFTER_ALL}"; then true; else _bailout "Batch teardown failed"; fi
 			fi
 
-#			echo "# ${_pdir}"
-			cd "${_pdir}"
+			cd "${_pdir_}"
 		fi
 	done
 
 	BEFORE_ALL=$_BEFORE_ALL
 	BEFORE_EACH=$_BEFORE_EACH
 	TESTS=$_TESTS
+	RUNNER=$_RUNNER
 	AFTER_ALL=$_AFTER_ALL
 	AFTER_EACH=$_AFTER_EACH
 }
