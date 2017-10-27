@@ -45,23 +45,28 @@ run () {
 				if [ -r "${TEST}" ]; then
 					TEST_NAME=$(basename ${TEST})
 					#TEST=${_cwd_}/${TEST}
-					if [ -r "${_cwd_}/${BEFORE_EACH}" ]; then
-						_debug "source ${_cwd_}/${BEFORE_EACH}"
-						if source "${_cwd_}/${BEFORE_EACH}"; then true; else _bailout "Test setup failed"; fi
-					fi
-					OK=${_ntest}
-					_debug "${RUNNER} ${TEST}"
-					${RUNNER} ${TEST}
-					OK=$?
-					let _ntest++
-					if [ -r "${AFTER_EACH}" ]; then
-						_debug "source ${PWD}/${AFTER_EACH}"
-						if source "./${AFTER_EACH}"; then true; else _bailout "Test teardown failed"; fi
-					fi
-					if [ "${OK}" == "0" ]; then
-						echo "ok ${_ntest} - ${TEST_NAME}"
+					if [ -d "${TEST}" ]; then
+						_debug "run ${TEST}"
+						run ${TEST}
 					else
-						echo "not ok ${_ntest} - ${TEST_NAME}"
+						if [ -r "${_cwd_}/${BEFORE_EACH}" ]; then
+							_debug "source ${_cwd_}/${BEFORE_EACH}"
+							if source "${_cwd_}/${BEFORE_EACH}"; then true; else _bailout "Test setup failed"; fi
+						fi
+						OK=${_ntest}
+						_debug "${RUNNER} ${TEST}"
+						${RUNNER} ${TEST}
+						OK=$?
+						let _ntest++
+						if [ -r "${AFTER_EACH}" ]; then
+							_debug "source ${PWD}/${AFTER_EACH}"
+							if source "./${AFTER_EACH}"; then true; else _bailout "Test teardown failed"; fi
+						fi
+						if [ "${OK}" == "0" ]; then
+							echo "ok ${_ntest} - ${TEST_NAME}"
+						else
+							echo "not ok ${_ntest} - ${TEST_NAME}"
+						fi
 					fi
 				fi
 			done
