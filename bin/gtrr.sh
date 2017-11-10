@@ -89,13 +89,13 @@ run () {
 }
 
 #
-# Command: test
+# Command: gtrr
 #
-# Run a a suite of test batches
+# Run one or more test suites
 #
-# Synopsis:
-#
-#     test [dir1] [dir2] ...
+# --- Prototype ---
+# gtrr [dir1] [dir2] ...
+# -----------------
 #
 # Description:
 # This shell script can run a suite of tests composed by several shell
@@ -118,10 +118,10 @@ run () {
 # Setup of the whol test run can be pu inside a before-all script in the
 # first or top-level test batch directory.
 #
-# Arguments:
-# - dirn: a directory into where to search for test scripts
+# Parameters:
+# 	dirn - one or more directories into where to search for test scripts
 #
-# Output:
+# Returned values:
 # The test output format is compatible with TAP specification, revision 12.
 #
 export ROOT=${PWD}
