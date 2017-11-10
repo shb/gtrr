@@ -128,4 +128,8 @@ export ROOT=${PWD}
 
 _ntest=0
 run ${*:-.}
-echo "1..${_ntest}"
+if [ "${_ntest}" == "0" ]; then
+	echo "bailout! No test found"
+else
+	echo "1..${_ntest}"
+fi
