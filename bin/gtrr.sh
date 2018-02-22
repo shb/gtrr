@@ -55,7 +55,7 @@ run () {
 						fi
 						OK=${_ntest}
 						_debug "${RUNNER} ${TEST}"
-						${RUNNER} ${TEST}
+						${RUNNER} ${TEST} 1> "${ROOT}/.gtrr_out"
 						OK=$?
 						let _ntest++
 						if [ -r "${AFTER_EACH}" ]; then
@@ -65,6 +65,7 @@ run () {
 						if [ "${OK}" == "0" ]; then
 							echo "ok ${_ntest} - ${TEST_NAME}"
 						else
+							cat "${ROOT}/.gtrr_out"
 							echo "not ok ${_ntest} - ${TEST_NAME}"
 						fi
 					fi
