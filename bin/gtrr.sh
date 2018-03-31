@@ -7,38 +7,39 @@ RUNNER=source
 AFTER_ALL=after.all
 AFTER_EACH=after.each
 
+# Used only for development, at the moment
 VERBOSE=0
 
-_bailout () {
+gtrr_error () {
 	echo "Bail out! $1"
 	exit 1
 }
 
-_debug () {
+gtrr_debug () {
 	if [ "${VERBOSE}" != "0" ]; then
 		echo "# $*"
 	fi
 }
 
-run () {
-	# Cache env vars for restoring them afterwards
-	_BEFORE_ALL=$BEFORE_ALL
-	_BEFORE_EACH=$BEFORE_EACH
-	_TESTS=$TESTS
-	_RUNNER=$RUNNER
-	_AFTER_ALL=$AFTER_ALL
-	_AFTER_EACH=$AFTER_EACH
+gtrr_run () {
+	# Cache program vars for restoring them afterwards
+	#TODO: this may be made simpler by defining **global defaults** and assign **local values**
+	local _BEFORE_ALL=$BEFORE_ALL
+	local _BEFORE_EACH=$BEFORE_EACH
+	local _TESTS=$TESTS
+	local _RUNNER=$RUNNER
+	local _AFTER_ALL=$AFTER_ALL
+	local _AFTER_EACH=$AFTER_EACH
 
-	for batch in $*; do
-		if [ -d ${batch} ]; then
-			_pdir_=${PWD}
-			_debug "cd ${batch}"
-			cd ${batch}
-			_cwd_=${PWD}
-
+	for batch in "$@"; do
+		if [ -d "${batch}" ]; then
+			local _pdir_=${PWD}
+			gtrr_debug "cd '${batch}'"
+			cd "${batch}"
+			local _cwd_=${PWD}
 			if [ -r "${BEFORE_ALL}" ]; then
-				_debug "source ${PWD}/${BEFORE_ALL}"
-				if source "./${BEFORE_ALL}"; then true; else _bailout "Batch setup failed"; fi
+				gtrr_debug "source ${PWD}/${BEFORE_ALL}"
+				if source "./${BEFORE_ALL}"; then true; else gtrr_error "Batch setup failed"; fi
 			fi
 
 			for TEST in ${_cwd_}/$TESTS; do
@@ -46,21 +47,21 @@ run () {
 					TEST_NAME=$(basename ${TEST})
 					#TEST=${_cwd_}/${TEST}
 					if [ -d "${TEST}" ]; then
-						_debug "run ${TEST}"
-						run ${TEST}
+						gtrr_debug "run '${TEST}'"
+						gtrr_run "${TEST}"
 					else
 						if [ -r "${_cwd_}/${BEFORE_EACH}" ]; then
-							_debug "source ${_cwd_}/${BEFORE_EACH}"
-							if source "${_cwd_}/${BEFORE_EACH}"; then true; else _bailout "Test setup failed"; fi
+							gtrr_debug "source '${_cwd_}/${BEFORE_EACH}'"
+							if source "${_cwd_}/${BEFORE_EACH}"; then true; else gtrr_error "Test setup failed"; fi
 						fi
-						OK=${_ntest}
-						_debug "${RUNNER} ${TEST}"
-						${RUNNER} ${TEST} 1> "${ROOT}/.gtrr_out"
+						local OK=${_ntest}
+						gtrr_debug "${RUNNER} '${TEST}'"
+						${RUNNER} "${TEST}" 1> "${ROOT}/.gtrr_out"
 						OK=$?
 						let _ntest++
 						if [ -r "${AFTER_EACH}" ]; then
-							_debug "source ${PWD}/${AFTER_EACH}"
-							if source "./${AFTER_EACH}"; then true; else _bailout "Test teardown failed"; fi
+							gtrr_debug "source '${PWD}/${AFTER_EACH}'"
+							if source "./${AFTER_EACH}"; then true; else gtrr_error "Test teardown failed"; fi
 						fi
 						if [ "${OK}" == "0" ]; then
 							echo "ok ${_ntest} - ${TEST_NAME}"
@@ -73,10 +74,11 @@ run () {
 			done
 
 			if [ -r "${AFTER_ALL}" ]; then
-				_debug "source ${PWD}/${AFTER_ALL}"
-				if source "./${AFTER_ALL}"; then true; else _bailout "Batch teardown failed"; fi
+				gtrr_debug "source '${PWD}/${AFTER_ALL}'"
+				if source "./${AFTER_ALL}"; then true; else gtrr_error "Batch teardown failed"; fi
 			fi
 
+			gtrr_debug "cd '${_pdir_}'"
 			cd "${_pdir_}"
 		fi
 	done
@@ -113,7 +115,7 @@ run () {
 # internales and can modify its functioning.
 #
 # Dependency between test batches (in different directories) can be implemented
-# by calling the `run` command inside the needed per- or post- requisite
+# by calling the `gtrr_run` command inside the needed per- or post- requisite
 # script.
 #
 # Setup of the whol test run can be pu inside a before-all script in the
@@ -128,9 +130,9 @@ run () {
 export ROOT=${PWD}
 
 _ntest=0
-run ${*:-.}
+gtrr_run ${*:-.}
 if [ "${_ntest}" == "0" ]; then
-	echo "bailout! No test found"
+	gtrr_error "No test found"
 else
 	echo "1..${_ntest}"
 fi
