@@ -42,9 +42,9 @@ gtrr_run () {
 				if source "./${BEFORE_ALL}"; then true; else gtrr_error "Batch setup failed"; fi
 			fi
 
-			for TEST in ${_cwd_}/$TESTS; do
+			for TEST in "${_cwd_}"/$TESTS; do
 				if [ -r "${TEST}" ]; then
-					TEST_NAME=$(basename ${TEST})
+					TEST_NAME=$(basename "${TEST}")
 					#TEST=${_cwd_}/${TEST}
 					if [ -d "${TEST}" ]; then
 						gtrr_debug "run '${TEST}'"
@@ -127,12 +127,19 @@ gtrr_run () {
 # Returned values:
 # The test output format is compatible with TAP specification, revision 12.
 #
+_ROOT=$ROOT
 export ROOT=${PWD}
 
 _ntest=0
 gtrr_run ${*:-.}
+_ok=$?
 if [ "${_ntest}" == "0" ]; then
 	gtrr_error "No test found"
 else
 	echo "1..${_ntest}"
 fi
+
+# Restore whatever the previous value of env ROOT was
+export ROOT=$_ROOT
+
+exit $_ok
