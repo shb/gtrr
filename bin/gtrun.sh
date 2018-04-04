@@ -136,6 +136,8 @@ gtrr_run () {
 #
 _ROOT=$ROOT
 export ROOT=${PWD}
+# App env variables: since 0.2.0
+export GTRR_ROOT=$ROOT
 
 _ntest=0
 gtrr_run "${*:-.}"
