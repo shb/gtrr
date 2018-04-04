@@ -138,7 +138,7 @@ _ROOT=$ROOT
 export ROOT=${PWD}
 
 _ntest=0
-gtrr_run ${*:-.}
+gtrr_run "${*:-.}"
 _ok=$?
 if [ "${_ntest}" == "0" ]; then
 	gtrr_error "No test found"
