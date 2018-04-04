@@ -4,6 +4,7 @@ BEFORE_ALL=before.all
 BEFORE_EACH=before.each
 TESTS='*.test'
 RUNNER=source
+BUFFER=1
 AFTER_ALL=after.all
 AFTER_EACH=after.each
 
@@ -28,6 +29,7 @@ gtrr_run () {
 	local _BEFORE_EACH=$BEFORE_EACH
 	local _TESTS=$TESTS
 	local _RUNNER=$RUNNER
+	local _BUFFER=$BUFFER
 	local _AFTER_ALL=$AFTER_ALL
 	local _AFTER_EACH=$AFTER_EACH
 
@@ -56,7 +58,11 @@ gtrr_run () {
 						fi
 						local OK=${_ntest}
 						gtrr_debug "${RUNNER} '${TEST}'"
-						${RUNNER} "${TEST}" 1> "${ROOT}/.gtrr_out"
+						if [ "x$BUFFER" != "x" ]; then
+							${RUNNER} "${TEST}" 1> "${ROOT}/.gtrr_out"
+						else
+							${RUNNER} "${TEST}"
+						fi
 						OK=$?
 						let _ntest++
 						if [ -r "${AFTER_EACH}" ]; then
@@ -66,7 +72,7 @@ gtrr_run () {
 						if [ "${OK}" == "0" ]; then
 							echo "ok ${_ntest} - ${TEST_NAME}"
 						else
-							cat "${ROOT}/.gtrr_out"
+							if [ "x$BUFFER" != "x" ]; then cat "${ROOT}/.gtrr_out"; fi
 							echo "not ok ${_ntest} - ${TEST_NAME}"
 						fi
 					fi
@@ -87,6 +93,7 @@ gtrr_run () {
 	BEFORE_EACH=$_BEFORE_EACH
 	TESTS=$_TESTS
 	RUNNER=$_RUNNER
+	BUFFER=$_BUFFER
 	AFTER_ALL=$_AFTER_ALL
 	AFTER_EACH=$_AFTER_EACH
 }
