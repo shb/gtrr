@@ -1,0 +1,3 @@
+echo '#' `basename "${PWD}"`
+
+TESTS=*.scenario

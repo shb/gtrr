@@ -1,0 +1,24 @@
+if [ -e test ]; then rm -rf test; fi
+
+# Given a test directory
+mkdir -p test
+
+# With a test subdirectory
+mkdir -p test/sub.test
+
+# And three test files in them
+echo 'echo one >> outcome' > test/one.test
+echo 'echo two >> ../outcome' > test/sub.test/two.test
+echo 'echo three >> outcome' > test/three.test
+
+# When GTRR is run on the top-level directory
+${GTRR_ROOT}/bin/gtrun.sh ./test
+
+# Then the tests pass
+if [ $? != 0 ]; then echo 'The tests have failed'; exit 1; fi
+
+# And the scripts have been executed in the expected order
+echo 'one
+two
+three' > test/expected
+diff test/outcome test/expected
