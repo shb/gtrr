@@ -137,9 +137,11 @@ gtrr_run () {
 _ROOT=$ROOT
 export ROOT=${PWD}
 # App env variables: since 0.2.0
+_GTRR_ROOT=${GTRR_ROOT}
 export GTRR_ROOT=$ROOT
 
 _ntest=0
+gtrr_debug "gtrr_run '${*:-.}'"
 gtrr_run "${*:-.}"
 _ok=$?
 if [ "${_ntest}" == "0" ]; then
@@ -149,6 +151,7 @@ else
 fi
 
 # Restore whatever the previous value of env ROOT was
-export ROOT=$_ROOT
+ROOT=$_ROOT
+GTRR_ROOT=$_GTRR_ROOT
 
 exit $_ok
