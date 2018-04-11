@@ -1,0 +1,4 @@
+TESTS=*.feature
+GTRR=${GTRR_ROOT}/bin/gtrun.sh
+
+echo "# Feature:" $(basename "${PWD}" .feature)

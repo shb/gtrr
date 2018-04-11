@@ -1,0 +1,17 @@
+if [ -e test ]; then rm -rf test; fi
+mkdir test
+
+# Given a test issuing a SKIP directive
+echo 'GTRR_SKIP="directive"' > test/0_skipped.test
+
+# And one not
+echo 'return 0' > test/1_not_skipped.test
+
+# When the tests are run
+${GTRR} test > test/outcome
+
+# Then the following output is obtained
+echo 'ok 1 - 0_skipped.test # SKIP directive
+ok 2 - 1_not_skipped.test
+1..2' > test/expectation
+diff test/outcome test/expectation

@@ -11,6 +11,9 @@ AFTER_EACH=after.each
 # Used only for development, at the moment
 VERBOSE=0
 
+GTRR_OUT=.gtrr_out
+GTRR_ENV=.gtrr_env
+
 gtrr_error () {
 	echo "Bail out! $1"
 	exit 1
@@ -20,6 +23,68 @@ gtrr_debug () {
 	if [ "${VERBOSE}" != "0" ]; then
 		echo "# $*"
 	fi
+}
+
+gtrr_run_test () {
+	local _pwd=${PWD}
+
+	gtrr_debug "cd '${GTRR_TEST_DIR}'"
+	cd "${GTRR_TEST_DIR}"
+
+	gtrr_debug "export -p > '${GTRR_ENV}'"
+	export -p > ${GTRR_ENV}
+
+	export GTRR_TEST=$1
+	export GTRR_TEST_NAME=$(basename "${GTRR_TEST}")
+	local GTRR_TEST_DIR=$(dirname "${GTRR_TEST}")
+	export GTRR_TODO
+	export GTRR_SKIP
+
+	if [ -r "${GTRR_TEST_DIR}/${BEFORE_EACH}" ]; then
+		gtrr_debug "source '${GTRR_TEST_DIR}/${BEFORE_EACH}'"
+		if source "${GTRR_TEST_DIR}/${BEFORE_EACH}"; then true; else gtrr_error "Test setup failed"; fi
+	fi
+	local OK=${_ntest}
+	gtrr_debug "${RUNNER} '${GTRR_TEST}'"
+	if [ "x${BUFFER}" != "x" ]; then
+		${RUNNER} "${GTRR_TEST}" 1> "${GTRR_TEST_DIR}/.gtrr_out"
+	else
+		${RUNNER} "${GTRR_TEST}"
+	fi
+	OK=$?
+	let _ntest++
+	if [ -r "${GTRR_TEST_DIR}/${AFTER_EACH}" ]; then
+		gtrr_debug "source '${GTRR_TEST_DIR}/${AFTER_EACH}'"
+		if source "${GTRR_TEST_DIR}/${AFTER_EACH}"; then true; else gtrr_error "Test teardown failed"; fi
+	fi
+
+	# Eval possible TODO or SKIP directives
+	local _directive=""
+	if [ "x${GTRR_SKIP}" != "x" ]; then
+		_directive=" # SKIP ${GTRR_SKIP}"
+	elif [ "x${GTRR_TODO}" != "x" ]; then
+		_directive=" # TODO ${GTRR_TODO}"
+	fi
+
+	if [ "${OK}" == "0" ]; then
+		echo "ok ${_ntest} - ${GTRR_TEST_NAME}${_directive}"
+	else
+		if [ "x${BUFFER}" != "x" ]; then cat "${GTRR_TEST_DIR}/${GTRR_OUT}"; fi
+		echo "not ok ${_ntest} - ${GTRR_TEST_NAME}${_directive}"
+	fi
+
+	# Reconstruct original environment
+	unset GTRR_SKIP
+	unset GTRR_TODO
+	unset GTRR_TEST_NAME
+	unset GTRR_TEST
+	gtrr_debug "source './${GTRR_ENV}'"
+	source "./${GTRR_ENV}"
+
+	# Return to starting directory
+	gtrr_debug "cd '${_pwd}'"
+	cd "${_pwd}"
+
 }
 
 gtrr_run () {
@@ -52,29 +117,8 @@ gtrr_run () {
 						gtrr_debug "run '${TEST}'"
 						gtrr_run "${TEST}"
 					else
-						if [ -r "${_cwd_}/${BEFORE_EACH}" ]; then
-							gtrr_debug "source '${_cwd_}/${BEFORE_EACH}'"
-							if source "${_cwd_}/${BEFORE_EACH}"; then true; else gtrr_error "Test setup failed"; fi
-						fi
-						local OK=${_ntest}
-						gtrr_debug "${RUNNER} '${TEST}'"
-						if [ "x$BUFFER" != "x" ]; then
-							${RUNNER} "${TEST}" 1> "${ROOT}/.gtrr_out"
-						else
-							${RUNNER} "${TEST}"
-						fi
-						OK=$?
-						let _ntest++
-						if [ -r "${AFTER_EACH}" ]; then
-							gtrr_debug "source '${PWD}/${AFTER_EACH}'"
-							if source "./${AFTER_EACH}"; then true; else gtrr_error "Test teardown failed"; fi
-						fi
-						if [ "${OK}" == "0" ]; then
-							echo "ok ${_ntest} - ${TEST_NAME}"
-						else
-							if [ "x$BUFFER" != "x" ]; then cat "${ROOT}/.gtrr_out"; fi
-							echo "not ok ${_ntest} - ${TEST_NAME}"
-						fi
+						gtrr_debug "gtrr_run_test '${TEST}'"
+						gtrr_run_test "${TEST}"
 					fi
 				fi
 			done
