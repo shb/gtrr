@@ -11,7 +11,7 @@ echo 'return 0' > test/1_not_skipped.test
 ${GTRR} test > test/outcome
 
 # Then the following output is obtained
-echo 'ok 1 - 0_skipped.test # SKIP directive
-ok 2 - 1_not_skipped.test
+echo 'ok 1 - 0_skipped # SKIP directive
+ok 2 - 1_not_skipped
 1..2' > test/expectation
 diff test/outcome test/expectation

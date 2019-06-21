@@ -1,0 +1,9 @@
+mkdir -p "${PWD}/test"
+echo '# just a test' > "${PWD}/test/Just a test.test"
+
+${GTRR_ROOT}/bin/gtrun.sh ${PWD}/test > test/outcome
+
+echo 'ok 1 - Just a test
+1..1' > ${PWD}/test/expectation
+
+diff "${PWD}/test/expectation" "${PWD}/test/outcome"

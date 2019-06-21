@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 BEFORE_ALL=before.all
 BEFORE_EACH=before.each
@@ -35,7 +35,7 @@ gtrr_run_test () {
 	export -p > ${GTRR_ENV}
 
 	export GTRR_TEST=$1
-	export GTRR_TEST_NAME=$(basename "${GTRR_TEST}")
+	export GTRR_TEST_NAME=$(basename "${GTRR_TEST}" | cut -f1 -d. )
 	local GTRR_TEST_DIR=$(dirname "${GTRR_TEST}")
 	export GTRR_TODO
 	export GTRR_SKIP
@@ -51,7 +51,7 @@ gtrr_run_test () {
 	else
 		${RUNNER} "${GTRR_TEST}"
 	fi
-	OK=$?
+	status=$?
 	let _ntest++
 	if [ -r "${GTRR_TEST_DIR}/${AFTER_EACH}" ]; then
 		gtrr_debug "source '${GTRR_TEST_DIR}/${AFTER_EACH}'"
@@ -66,7 +66,7 @@ gtrr_run_test () {
 		_directive=" # TODO ${GTRR_TODO}"
 	fi
 
-	if [ "${OK}" == "0" ]; then
+	if [ "${status}" == "0" ]; then
 		echo "ok ${_ntest} - ${GTRR_TEST_NAME}${_directive}"
 	else
 		if [ "x${BUFFER}" != "x" ]; then cat "${GTRR_TEST_DIR}/${GTRR_OUT}"; fi
@@ -85,6 +85,7 @@ gtrr_run_test () {
 	gtrr_debug "cd '${_pwd}'"
 	cd "${_pwd}"
 
+	return $status
 }
 
 gtrr_run () {
@@ -98,6 +99,7 @@ gtrr_run () {
 	local _AFTER_ALL=$AFTER_ALL
 	local _AFTER_EACH=$AFTER_EACH
 
+	local _overall_status=0
 	for batch in "$@"; do
 		if [ -d "${batch}" ]; then
 			local _pdir_=${PWD}
@@ -109,19 +111,23 @@ gtrr_run () {
 				if source "./${BEFORE_ALL}"; then true; else gtrr_error "Batch setup failed"; fi
 			fi
 
+			let _exit_Status=0
 			for TEST in "${_cwd_}"/$TESTS; do
 				if [ -r "${TEST}" ]; then
-					TEST_NAME=$(basename "${TEST}")
-					#TEST=${_cwd_}/${TEST}
 					if [ -d "${TEST}" ]; then
 						gtrr_debug "run '${TEST}'"
 						gtrr_run "${TEST}"
+						_exit_status=$?
 					else
 						gtrr_debug "gtrr_run_test '${TEST}'"
 						gtrr_run_test "${TEST}"
+						_exit_status=$?
 					fi
 				fi
 			done
+			if [ "$_exit_status" != "0" ]; then
+				_overall_status=1
+			fi
 
 			if [ -r "${AFTER_ALL}" ]; then
 				gtrr_debug "source '${PWD}/${AFTER_ALL}'"
@@ -140,6 +146,8 @@ gtrr_run () {
 	BUFFER=$_BUFFER
 	AFTER_ALL=$_AFTER_ALL
 	AFTER_EACH=$_AFTER_EACH
+
+	return $_overall_status
 }
 
 #

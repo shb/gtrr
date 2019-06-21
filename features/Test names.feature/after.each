@@ -1,0 +1,1 @@
+rm "$( ls "${PWD}"/test/*.test )"
