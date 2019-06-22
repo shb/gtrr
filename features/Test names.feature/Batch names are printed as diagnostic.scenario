@@ -1,0 +1,11 @@
+mkdir -p test/batch.test
+
+echo 'true' > test/batch.test/some.test
+
+${GTRR_ROOT}/bin/gtrun.sh test > test/outcome
+
+echo '# batch
+ok 1 - some
+1..1' > test/expected
+
+diff test/expected test/outcome

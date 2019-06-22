@@ -1,3 +1,2 @@
-echo "# Feature:" $(basename "$PWD" .feature)
 TESTS=*.scenario
 RUNNER=sh

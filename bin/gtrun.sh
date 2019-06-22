@@ -25,6 +25,10 @@ gtrr_debug () {
 	fi
 }
 
+simplest_test_name () {
+	echo $(basename "$1" | cut -f1 -d. )
+}
+
 gtrr_run_test () {
 	local _pwd=${PWD}
 
@@ -35,7 +39,7 @@ gtrr_run_test () {
 	export -p > ${GTRR_ENV}
 
 	export GTRR_TEST=$1
-	export GTRR_TEST_NAME=$(basename "${GTRR_TEST}" | cut -f1 -d. )
+	export GTRR_TEST_NAME=$(simplest_test_name "${GTRR_TEST}")
 	local GTRR_TEST_DIR=$(dirname "${GTRR_TEST}")
 	export GTRR_TODO
 	export GTRR_SKIP
@@ -116,6 +120,7 @@ gtrr_run () {
 				if [ -r "${TEST}" ]; then
 					if [ -d "${TEST}" ]; then
 						gtrr_debug "run '${TEST}'"
+						echo '#' $(simplest_test_name "${TEST}")
 						gtrr_run "${TEST}"
 						_exit_status=$?
 					else

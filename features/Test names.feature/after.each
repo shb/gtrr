@@ -1,1 +1,1 @@
-rm "$( ls "${PWD}"/test/*.test )"
+rm -rf "$( ls -d test/*.test )"
