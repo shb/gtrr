@@ -1,0 +1,12 @@
+# Given we're running tests as shell scripts
+# (as per RUNNER value inside this batch's before.all)
+
+# When we inspect the following environment variables
+root=$GTRR_ROOT
+test=$GTRR_TEST
+name=$GTRR_TEST_NAME
+
+# Then we obtain valid values
+if [ "x${root}" == "x" ]; then echo "GTRR_ROOT found to be empty"; exit 1; fi
+if [ "x${test}" == "x" ]; then echo "GTRR_TEST found to be empty"; exit 1; fi
+if [ "x${name}" == "x" ]; then echo "GTRR_TEST_NAME found to be empty"; exit 1; fi

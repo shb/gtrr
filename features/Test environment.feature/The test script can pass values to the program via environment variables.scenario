@@ -1,0 +1,13 @@
+# Given a test which sets a GTRR_ variable
+if [ -e test ]; then rm -rf test; fi
+mkdir -p test
+
+echo 'GTRR_TEST_NAME="Nice test name"' > test/one.test
+
+# When the test batch is run
+${GTRR_ROOT}/bin/gtrun.sh test > test/outcome
+
+# Then the value is reported correctly
+echo 'ok 1 - Nice test name
+1..1' > test/expected
+diff test/outcome test/expected

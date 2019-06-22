@@ -1,0 +1,2 @@
+source ../before.all
+TESTS=*.scenario

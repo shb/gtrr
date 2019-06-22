@@ -1,0 +1,11 @@
+if [ -e test ]; then rm -rf test; fi
+mkdir test
+
+echo 'GTRR_TODO="directive"; return 1' > test/one.test
+
+echo 'not ok 1 - one.test # TODO directive
+1..1' > test/expectation
+
+${GTRR} test > test/outcome
+
+diff test/outcome test/expectation
