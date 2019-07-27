@@ -3,7 +3,7 @@
 BEFORE_ALL=before.all
 BEFORE_EACH=before.each
 TESTS='*.test'
-RUNNER=source
+RUNNER=.
 BUFFER=1
 AFTER_ALL=after.all
 AFTER_EACH=after.each
@@ -38,9 +38,9 @@ gtrr_run_test () {
 	gtrr_debug "export -p > '${GTRR_ENV}'"
 	export -p > ${GTRR_ENV}
 
-	export GTRR_TEST=$1
+	export GTRR_TEST="$1"
 	export GTRR_TEST_NAME=$(simplest_test_name "${GTRR_TEST}")
-	local GTRR_TEST_DIR=$(dirname "${GTRR_TEST}")
+	local GTRR_TEST_DIR="$(dirname "${GTRR_TEST}")"
 	export GTRR_TODO
 	export GTRR_SKIP
 
