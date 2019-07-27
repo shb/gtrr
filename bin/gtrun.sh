@@ -26,14 +26,14 @@ gtrr_debug () {
 }
 
 simplest_test_name () {
-	echo $(basename "$1" | cut -f1 -d. )
+	basename "$1" | cut -f1 -d.
 }
 
 gtrr_run_test () {
-	local _pwd=${PWD}
+	_pwd=${PWD}
 
 	gtrr_debug "cd '${GTRR_TEST_DIR}'"
-	cd "${GTRR_TEST_DIR}"
+	cd "${GTRR_TEST_DIR}" || gtrr_error "Cannot cd into ${GTRR_TEST_DIR}"
 
 	gtrr_debug "export -p > '${GTRR_ENV}'"
 	export -p > ${GTRR_ENV}
@@ -46,9 +46,8 @@ gtrr_run_test () {
 
 	if [ -r "${GTRR_TEST_DIR}/${BEFORE_EACH}" ]; then
 		gtrr_debug "source '${GTRR_TEST_DIR}/${BEFORE_EACH}'"
-		if source "${GTRR_TEST_DIR}/${BEFORE_EACH}"; then true; else gtrr_error "Test setup failed"; fi
+		if . "${GTRR_TEST_DIR}/${BEFORE_EACH}"; then true; else gtrr_error "Test setup failed"; fi
 	fi
-	local OK=${_ntest}
 	gtrr_debug "${RUNNER} '${GTRR_TEST}'"
 	if [ "x${BUFFER}" != "x" ]; then
 		${RUNNER} "${GTRR_TEST}" 1> "${GTRR_TEST_DIR}/.gtrr_out"
@@ -56,21 +55,21 @@ gtrr_run_test () {
 		${RUNNER} "${GTRR_TEST}"
 	fi
 	status=$?
-	let _ntest++
+	_ntest=$(( _ntest + 1 ))
 	if [ -r "${GTRR_TEST_DIR}/${AFTER_EACH}" ]; then
 		gtrr_debug "source '${GTRR_TEST_DIR}/${AFTER_EACH}'"
-		if source "${GTRR_TEST_DIR}/${AFTER_EACH}"; then true; else gtrr_error "Test teardown failed"; fi
+		if . "${GTRR_TEST_DIR}/${AFTER_EACH}"; then true; else gtrr_error "Test teardown failed"; fi
 	fi
 
 	# Eval possible TODO or SKIP directives
-	local _directive=""
+	_directive=""
 	if [ "x${GTRR_SKIP}" != "x" ]; then
 		_directive=" # SKIP ${GTRR_SKIP}"
 	elif [ "x${GTRR_TODO}" != "x" ]; then
 		_directive=" # TODO ${GTRR_TODO}"
 	fi
 
-	if [ "${status}" == "0" ]; then
+	if [ "${status}" = "0" ]; then
 		echo "ok ${_ntest} - ${GTRR_TEST_NAME}${_directive}"
 	else
 		if [ "x${BUFFER}" != "x" ]; then cat "${GTRR_TEST_DIR}/${GTRR_OUT}"; fi
@@ -83,11 +82,11 @@ gtrr_run_test () {
 	unset GTRR_TEST_NAME
 	unset GTRR_TEST
 	gtrr_debug "source './${GTRR_ENV}'"
-	source "./${GTRR_ENV}"
+	. "./${GTRR_ENV}"
 
 	# Return to starting directory
 	gtrr_debug "cd '${_pwd}'"
-	cd "${_pwd}"
+	cd "${_pwd}" || gtrr_error "Can't cd into ${_pwd}"
 
 	return $status
 }
@@ -95,27 +94,26 @@ gtrr_run_test () {
 gtrr_run () {
 	# Cache program vars for restoring them afterwards
 	#TODO: this may be made simpler by defining **global defaults** and assign **local values**
-	local _BEFORE_ALL=$BEFORE_ALL
-	local _BEFORE_EACH=$BEFORE_EACH
-	local _TESTS=$TESTS
-	local _RUNNER=$RUNNER
-	local _BUFFER=$BUFFER
-	local _AFTER_ALL=$AFTER_ALL
-	local _AFTER_EACH=$AFTER_EACH
+	_BEFORE_ALL=$BEFORE_ALL
+	_BEFORE_EACH=$BEFORE_EACH
+	_TESTS=$TESTS
+	_RUNNER=$RUNNER
+	_BUFFER=$BUFFER
+	_AFTER_ALL=$AFTER_ALL
+	_AFTER_EACH=$AFTER_EACH
 
-	local _overall_status=0
+	_overall_status=0
 	for batch in "$@"; do
 		if [ -d "${batch}" ]; then
-			local _pdir_=${PWD}
+			_pdir_=${PWD}
 			gtrr_debug "cd '${batch}'"
-			cd "${batch}"
-			local _cwd_=${PWD}
+			cd "${batch}" || gtrr_error "Can't cd into ${batch}"
+			_cwd_=${PWD}
 			if [ -r "${BEFORE_ALL}" ]; then
 				gtrr_debug "source ${PWD}/${BEFORE_ALL}"
-				if source "./${BEFORE_ALL}"; then true; else gtrr_error "Batch setup failed"; fi
+				if . "./${BEFORE_ALL}"; then true; else gtrr_error "Batch setup failed"; fi
 			fi
 
-			let _exit_Status=0
 			for TEST in "${_cwd_}"/$TESTS; do
 				if [ -r "${TEST}" ]; then
 					if [ -d "${TEST}" ]; then
@@ -136,11 +134,11 @@ gtrr_run () {
 
 			if [ -r "${AFTER_ALL}" ]; then
 				gtrr_debug "source '${PWD}/${AFTER_ALL}'"
-				if source "./${AFTER_ALL}"; then true; else gtrr_error "Batch teardown failed"; fi
+				if . "./${AFTER_ALL}"; then true; else gtrr_error "Batch teardown failed"; fi
 			fi
 
 			gtrr_debug "cd '${_pdir_}'"
-			cd "${_pdir_}"
+			cd "${_pdir_}" || gtrr_error "Can't cd into ${_pdir_}"
 		fi
 	done
 
@@ -201,7 +199,7 @@ _ntest=0
 gtrr_debug "gtrr_run '${*:-.}'"
 gtrr_run "${*:-.}"
 _ok=$?
-if [ "${_ntest}" == "0" ]; then
+if [ "${_ntest}" = "0" ]; then
 	gtrr_error "No test found"
 else
 	echo "1..${_ntest}"
