@@ -1,0 +1,4 @@
+os: linux
+language: shell
+install: skip
+script: bin/gtrun.sh features
