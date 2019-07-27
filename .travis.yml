@@ -1,4 +1,4 @@
-os: linux
-language: shell
+os: osx
+language: sh
 install: skip
 script: bin/gtrun.sh features

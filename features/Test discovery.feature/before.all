@@ -1,3 +1,3 @@
-source ../before.all
+. ../before.all
 
 TESTS=*.scenario
